@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第五人格对抗赛</title>
+<style>
+:root {
+  --bg:#0d1117; --card:#161b22; --border:#30363d; --text:#c9d1d9; --muted:#8b949e;
+  --accent:#8b5cf6; --a2:#a78bfa; --gold:#d4a853; --red:#f85149; --green:#3fb950;
+  --inp:#0d1117; --r:8px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  background:var(--bg); color:var(--text); min-height:100vh;
+  background-image:radial-gradient(ellipse at 20% 0%,rgba(139,92,246,0.08) 0%,transparent 50%),radial-gradient(ellipse at 80% 100%,rgba(212,168,83,0.06) 0%,transparent 50%);
+}
+.app{max-width:900px;margin:0 auto;padding:16px 14px 60px}
+
+/* Header */
+.header{text-align:center;padding:16px 0 8px}
+.header .icon{font-size:40px}
+.header h1{font-size:22px;font-weight:800;background:linear-gradient(135deg,#c9d1d9 0%,#8b5cf6 50%,#d4a853 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin:4px 0}
+.header .sub{color:var(--muted);font-size:12px}
+.header .conn{font-size:10px;margin-top:4px}
+.conn-live{color:var(--green)}.conn-off{color:var(--red)}
+
+/* Nav */
+.nav{display:flex;gap:0;margin:16px 0;border-bottom:2px solid var(--border);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.nav-btn{padding:10px 16px;cursor:pointer;font-size:13px;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;white-space:nowrap;background:none;border-top:none;border-left:none;border-right:none;font-family:inherit}
+.nav-btn:hover{color:var(--text)}
+.nav-btn.active{color:var(--a2);border-bottom-color:var(--accent)}
+.panel{display:none}
+.panel.active{display:block}
+
+/* Cards */
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:14px;box-shadow:0 4px 24px rgba(0,0,0,.3)}
+.card-h{font-size:15px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.badge{font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(139,92,246,.2);color:var(--a2)}
+
+/* Form */
+.fg{margin-bottom:12px}
+.fg:last-child{margin-bottom:0}
+label{display:block;font-size:13px;font-weight:600;margin-bottom:3px;color:#e6edf3}
+label .req{color:var(--red);margin-left:2px}
+input,select,textarea{width:100%;padding:9px 12px;background:var(--inp);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-size:13px;font-family:inherit;transition:border-color .2s,box-shadow .2s;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(139,92,246,.15)}
+input::placeholder,textarea::placeholder{color:#484f58}
+select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238b949e' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'%3E%3C/path%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+select option{background:var(--card);color:var(--text)}
+.row{display:flex;gap:10px}.row>*{flex:1}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:10px 22px;border:none;border-radius:var(--r);font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;font-family:inherit;color:#fff}
+.btn-p{background:linear-gradient(135deg,#8b5cf6,#7c3aed);width:100%;box-shadow:0 4px 16px rgba(139,92,246,.3)}
+.btn-p:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(139,92,246,.4)}
+.btn-o{background:transparent;border:1px solid var(--border);color:var(--text)}
+.btn-o:hover{border-color:var(--accent);color:var(--a2)}
+.btn-s{padding:5px 12px;font-size:11px}
+.btn-d{color:var(--red)!important;border-color:var(--red)!important}
+
+/* Member card */
+.mcard{background:var(--inp);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;border-left:3px solid var(--border)}
+.mcard.h{border-left-color:var(--red)}.mcard.s{border-left-color:var(--green)}
+.mcard .mh{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.mcard .mn{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;color:#fff}
+.mn-h{background:var(--red)}.mn-s{background:var(--green)}
+.mcard .mr{font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px}
+.mr-h{background:rgba(248,81,73,.2);color:var(--red)}.mr-s{background:rgba(63,185,80,.2);color:var(--green)}
+
+/* Stats */
+.srow{display:flex;gap:10px;margin-bottom:14px}
+.stat{flex:1;background:var(--inp);border:1px solid var(--border);border-radius:var(--r);padding:12px;text-align:center}
+.stat .num{font-size:24px;font-weight:800;color:var(--a2)}
+.stat .lbl{font-size:11px;color:var(--muted);margin-top:2px}
+
+/* Team list */
+.tlist{display:grid;gap:12px;grid-template-columns:1fr}
+@media(min-width:640px){.tlist{grid-template-columns:1fr 1fr}}
+.tcard{background:var(--inp);border:1px solid var(--border);border-radius:var(--r);padding:14px;position:relative}
+.tcard .tname{font-size:16px;font-weight:800;color:var(--a2);margin-bottom:8px}
+.tcard .tmeta{color:var(--muted);font-size:11px;margin-bottom:6px}
+.tcard .tags{display:flex;flex-wrap:wrap;gap:5px}
+.tcard .tag{font-size:11px;padding:3px 10px;border-radius:12px;background:var(--card);border:1px solid var(--border)}
+.tag .tr{font-weight:700;margin-left:4px}.tr-h{color:var(--red)}.tr-s{color:var(--green)}
+.tcard .delb{position:absolute;top:8px;right:8px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:4px 8px;border-radius:4px}
+.tcard .delb:hover{color:var(--red)}
+
+/* Bracket */
+.bracket{display:flex;gap:20px;overflow-x:auto;padding:10px 0}
+.bround{min-width:200px;display:flex;flex-direction:column;justify-content:center;gap:24px}
+.bround-title{font-size:12px;font-weight:700;color:var(--gold);text-align:center;margin-bottom:4px;text-transform:uppercase;letter-spacing:1px}
+.bmatch{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;min-height:100px;display:flex;flex-direction:column;justify-content:center;gap:6px}
+.bmatch .vs{font-size:13px;font-weight:700}
+.bmatch .bscore{font-size:12px;color:var(--gold);font-weight:700}
+.bmatch .bwinner{font-size:11px;color:var(--green);font-weight:700;margin-top:2px}
+.bmatch .bpending{font-size:12px;color:var(--muted)}
+.bmatch .bstatus{font-size:10px;color:var(--muted);margin-top:2px}
+
+/* Score panel */
+.game-card{background:var(--inp);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px}
+.game-card .gh{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.game-card .gh .gn{font-size:14px;font-weight:800;color:var(--a2)}
+.half-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px}
+.half-box{background:var(--card);border-radius:8px;padding:10px;text-align:center}
+.half-box .hl{font-size:11px;color:var(--muted);margin-bottom:4px}
+.half-box .hs{font-size:20px;font-weight:800}
+.half-box .hd{font-size:10px;color:var(--muted)}
+.game-result{display:flex;justify-content:center;gap:20px;padding:8px 0;font-weight:700}
+.match-summary{display:flex;justify-content:space-between;align-items:center;background:var(--card);border-radius:var(--r);padding:14px;margin-top:10px}
+.match-summary .ms{font-size:20px;font-weight:800}
+
+/* Toast */
+.toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);background:var(--green);color:#000;padding:10px 22px;border-radius:8px;font-weight:700;font-size:14px;z-index:2000;opacity:0;pointer-events:none;transition:opacity .3s;box-shadow:0 4px 20px rgba(63,185,80,.4)}
+.toast.show{opacity:1}.toast.err{background:var(--red);color:#fff}
+
+/* Modal */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .25s}
+.modal.show{opacity:1;pointer-events:auto}
+.modal-inner{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;max-width:520px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.5);max-height:85vh;overflow-y:auto}
+
+.empty{text-align:center;padding:40px;color:var(--muted)}
+.empty .icon{font-size:44px;margin-bottom:10px}
+.config-box{background:var(--inp);border:1px solid var(--gold);border-radius:var(--r);padding:12px;margin:14px 0;font-size:11px;font-family:monospace;word-break:break-all}
+
+@media(max-width:480px){
+  .header h1{font-size:18px}.card{padding:14px}.row{flex-direction:column;gap:0}
+  .nav-btn{padding:8px 12px;font-size:12px}.bround{min-width:150px}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="header">
+    <div class="icon">🕯️</div>
+    <h1>第五人格 · 水友对抗赛</h1>
+    <div class="sub" id="tourneySub">加载中…</div>
+    <div class="conn conn-off" id="connStatus">⚫ 离线模式（数据存本地）</div>
+  </div>
+
+  <div class="nav" id="nav">
+    <button class="nav-btn active" data-p="info">🏠 赛事</button>
+    <button class="nav-btn" data-p="reg">📝 报名</button>
+    <button class="nav-btn" data-p="teams">📊 队伍</button>
+    <button class="nav-btn" data-p="bracket">📅 对阵</button>
+    <button class="nav-btn" data-p="score">⚡ 记分</button>
+    <button class="nav-btn" data-p="result">🏆 结果</button>
+  </div>
+
+  <!-- ═══════════════ PANEL 1: INFO ═══════════════ -->
+  <div class="panel active" id="p-info">
+    <div class="card">
+      <div class="card-h">🏠 赛事设置</div>
+      <div class="row">
+        <div class="fg"><label>比赛名称 <span class="req">*</span></label><input id="t-name" placeholder="给比赛起个名"></div>
+        <div class="fg"><label>比赛日期</label><input type="date" id="t-date"></div>
+        <div class="fg"><label>赛制</label><select id="t-format"><option value="bo3">BO3 三局两胜</option><option value="bo5" selected>BO5 五局三胜</option></select></div>
+      </div>
+      <button class="btn btn-p" style="margin-top:12px" onclick="saveTournament()">💾 保存设置</button>
+    </div>
+
+    <div class="srow" id="infoStats"></div>
+
+    <div class="card">
+      <div class="card-h">⚙️ 快捷操作</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-p btn-s" style="width:auto" onclick="switchPanel('reg')">📝 队伍报名</button>
+        <button class="btn btn-o btn-s" onclick="generateBracket()">📅 生成对阵表</button>
+        <button class="btn btn-o btn-s" onclick="switchPanel('score')">⚡ 开始记分</button>
+        <button class="btn btn-o btn-s btn-d" onclick="resetAll()">🗑 重置全部</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-h">🔌 Firebase 设置</div>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:10px">填入 Firebase 配置以启用多设备实时同步。留空则使用离线模式（数据存浏览器本地）。</p>
+      <div class="row">
+        <div class="fg"><label>apiKey</label><input id="fb-apiKey" placeholder="AIzaSy..."></div>
+        <div class="fg"><label>projectId</label><input id="fb-projectId" placeholder="my-project"></div>
+      </div>
+      <div class="fg"><label>databaseURL</label><input id="fb-databaseURL" placeholder="https://xxx.firebaseio.com"></div>
+      <button class="btn btn-p btn-s" style="width:auto;margin-top:8px" onclick="initFirebase()">🔗 连接 Firebase</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════ PANEL 2: REG ═══════════════ -->
+  <div class="panel" id="p-reg">
+    <form id="regForm" autocomplete="off">
+      <div class="card">
+        <div class="card-h">🏴 队伍信息</div>
+        <div class="row">
+          <div class="fg"><label>队伍名称 <span class="req">*</span></label><input id="r-team" placeholder="队伍名" required maxlength="20"></div>
+          <div class="fg"><label>队长联系方式 <span class="req">*</span></label><input id="r-contact" placeholder="微信号/QQ号" required maxlength="30"></div>
+        </div>
+      </div>
+
+      <!-- Hunter -->
+      <div class="card" id="memberCards">
+        <div class="card-h">📋 队员信息 <span class="badge">5人</span></div>
+        <div id="memberArea"></div>
+      </div>
+
+      <div class="card">
+        <div class="fg"><label>备注 <span class="hint" style="font-weight:400;color:var(--muted);font-size:11px">选填</span></label><textarea id="r-notes" rows="2" placeholder="可参赛时间、口号…" maxlength="200"></textarea></div>
+      </div>
+
+      <input type="hidden" id="r-editId">
+      <button type="submit" class="btn btn-p" id="r-submit">✍️ 提交报名</button>
+      <button type="button" class="btn btn-o" style="width:100%;margin-top:6px;display:none" id="r-cancel" onclick="cancelEdit()">取消编辑</button>
+    </form>
+  </div>
+
+  <!-- ═══════════════ PANEL 3: TEAMS ═══════════════ -->
+  <div class="panel" id="p-teams">
+    <div class="srow" id="teamStats"></div>
+    <div class="tlist" id="teamList"><div class="empty"><div class="icon">📭</div><p>暂无队伍报名</p></div></div>
+  </div>
+
+  <!-- ═══════════════ PANEL 4: BRACKET ═══════════════ -->
+  <div class="panel" id="p-bracket">
+    <div style="margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-p btn-s" style="width:auto" onclick="generateBracket()">🔄 重新生成对阵</button>
+      <span style="font-size:12px;color:var(--muted);align-self:center" id="bracketInfo"></span>
+    </div>
+    <div class="bracket" id="bracketTree"><div class="empty"><div class="icon">📅</div><p>请先报名队伍，然后生成对阵表</p></div></div>
+  </div>
+
+  <!-- ═══════════════ PANEL 5: SCORE ═══════════════ -->
+  <div class="panel" id="p-score">
+    <div style="margin-bottom:14px">
+      <select id="scoreMatch" onchange="loadScoring()" style="width:100%"><option value="">选择一场比赛...</option></select>
+    </div>
+    <div id="scoreArea"><div class="empty"><div class="icon">⚡</div><p>请先选择比赛</p></div></div>
+  </div>
+
+  <!-- ═══════════════ PANEL 6: RESULT ═══════════════ -->
+  <div class="panel" id="p-result">
+    <div id="resultArea"><div class="empty"><div class="icon">🏆</div><p>比赛结束后结果将显示在这里</p></div></div>
+    <div class="card" style="margin-top:14px">
+      <div class="card-h">⭐ MVP 评选</div>
+      <div class="row">
+        <div class="fg"><label>最佳监管者</label><input id="mvp-hunter" placeholder="名字"></div>
+        <div class="fg"><label>最佳求生者</label><input id="mvp-survivor" placeholder="名字"></div>
+      </div>
+      <button class="btn btn-p btn-s" style="width:auto;margin-top:8px" onclick="saveMVP()">💾 保存 MVP</button>
+    </div>
+    <button class="btn btn-o btn-s" style="margin-top:8px" onclick="exportCSV()">📥 导出 CSV</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// 1. DATA LAYER — localStorage + optional Firebase
+// ═══════════════════════════════════════════════════════════
+let db = null; // Firebase db ref, null = offline mode
+const L = {
+  get(k,d){try{const v=localStorage.getItem('idv_'+k);return v?JSON.parse(v):d}catch{return d}},
+  set(k,v){localStorage.setItem('idv_'+k,JSON.stringify(v))}
+};
+
+function loadData(){ return L.get('data',{tournament:{name:'',date:'',format:'bo5'},teams:[],matches:[],mvp:{}}); }
+function saveData(d){ L.set('data',d); if(db) db.ref('/').set(d).catch(()=>{}); }
+
+// Firebase init
+function initFirebase(){
+  const cfg={
+    apiKey:document.getElementById('fb-apiKey').value.trim(),
+    projectId:document.getElementById('fb-projectId').value.trim(),
+    databaseURL:document.getElementById('fb-databaseURL').value.trim()
+  };
+  if(!cfg.apiKey||!cfg.projectId||!cfg.databaseURL){toast('请填写完整的 Firebase 配置',true);return;}
+  cfg.authDomain=cfg.projectId+'.firebaseapp.com';
+  cfg.storageBucket=cfg.projectId+'.appspot.com';
+  cfg.appId=''; cfg.messagingSenderId='';
+
+  try{
+    const app=firebase.initializeApp(cfg);
+    db=firebase.database(app);
+    L.set('fb_cfg',cfg);
+    document.getElementById('connStatus').textContent='🟢 在线模式（Firebase 已连接）';
+    document.getElementById('connStatus').className='conn conn-live';
+
+    // Pull existing data from Firebase
+    db.ref('/').once('value').then(snap=>{
+      if(snap.val()){ L.set('data',snap.val()); }
+      refreshAll();
+    });
+
+    // Listen for real-time changes
+    db.ref('/').on('value',snap=>{
+      if(snap.val()){
+        L.set('data',snap.val());
+        refreshAll();
+      }
+    });
+
+    toast('✅ Firebase 已连接！');
+  }catch(e){ toast('Firebase 连接失败: '+e.message,true); }
+}
+
+// Auto-init if saved config exists
+(function(){
+  const cfg=L.get('fb_cfg',null);
+  if(cfg&&cfg.apiKey){
+    document.getElementById('fb-apiKey').value=cfg.apiKey||'';
+    document.getElementById('fb-projectId').value=cfg.projectId||'';
+    document.getElementById('fb-databaseURL').value=cfg.databaseURL||'';
+    try{
+      firebase.initializeApp(cfg);
+      db=firebase.database();
+      document.getElementById('connStatus').textContent='🟢 在线模式（Firebase 已连接）';
+      document.getElementById('connStatus').className='conn conn-live';
+      db.ref('/').once('value').then(snap=>{
+        if(snap.val()){L.set('data',snap.val());}
+        refreshAll();
+      });
+      db.ref('/').on('value',snap=>{
+        if(snap.val()){L.set('data',snap.val());refreshAll();}
+      });
+    }catch(e){}
+  }
+})();
+
+// ═══════════════════════════════════════════════════════════
+// 2. HELPERS
+// ═══════════════════════════════════════════════════════════
+function toast(m,e){const t=document.getElementById('toast');t.textContent=m;t.className='toast'+(e?' err':'')+' show';clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2200);}
+function esc(s){const d=document.createElement('div');d.textContent=s||'';return d.innerHTML;}
+function genId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+
+// ═══════════════════════════════════════════════════════════
+// 3. NAVIGATION
+// ═══════════════════════════════════════════════════════════
+document.getElementById('nav').addEventListener('click',e=>{
+  const b=e.target.closest('.nav-btn');if(!b)return;
+  switchPanel(b.dataset.p);
+});
+function switchPanel(name){
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector(`.nav-btn[data-p="${name}"]`).classList.add('active');
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('p-'+name).classList.add('active');
+  refreshPanel(name);
+}
+function refreshPanel(name){
+  switch(name){
+    case 'info': refreshInfo(); break;
+    case 'reg': buildMemberForm(); break;
+    case 'teams': refreshTeams(); break;
+    case 'bracket': refreshBracket(); break;
+    case 'score': refreshScoring(); break;
+    case 'result': refreshResult(); break;
+  }
+}
+function refreshAll(){
+  const active=document.querySelector('.panel.active');
+  if(!active)return;
+  const name=active.id.replace('p-','');
+  refreshPanel(name);
+}
+
+// ═══════════════════════════════════════════════════════════
+// 4. TOURNAMENT SETUP
+// ═══════════════════════════════════════════════════════════
+function saveTournament(){
+  const d=loadData();
+  d.tournament.name=document.getElementById('t-name').value.trim()||'第五人格水友对抗赛';
+  d.tournament.date=document.getElementById('t-date').value;
+  d.tournament.format=document.getElementById('t-format').value;
+  saveData(d);
+  toast('✅ 赛事设置已保存');
+  refreshAll();
+}
+
+function refreshInfo(){
+  const d=loadData(); const t=d.tournament;
+  document.getElementById('t-name').value=t.name||'';
+  document.getElementById('t-date').value=t.date||'';
+  document.getElementById('t-format').value=t.format||'bo5';
+  document.getElementById('tourneySub').textContent=(t.name||'第五人格水友对抗赛')+(t.date?' · '+t.date:'');
+  const teams=d.teams||[], matches=d.matches||[];
+  document.getElementById('infoStats').innerHTML=`
+    <div class="stat"><div class="num">${teams.length}</div><div class="lbl">已报名队伍</div></div>
+    <div class="stat"><div class="num">${teams.reduce((s,t)=>s+(t.members||[]).length,0)}</div><div class="lbl">参赛人数</div></div>
+    <div class="stat"><div class="num">${matches.length}</div><div class="lbl">比赛场次</div></div>
+    <div class="stat"><div class="num">${matches.filter(m=>m.winner).length}</div><div class="lbl">已完成</div></div>`;
+}
+
+function resetAll(){
+  if(!confirm('确定清空全部数据？此操作不可恢复！'))return;
+  saveData({tournament:{name:'',date:'',format:'bo5'},teams:[],matches:[],mvp:{}});
+  refreshAll(); toast('已重置');
+}
+
+// ═══════════════════════════════════════════════════════════
+// 5. TEAM REGISTRATION
+// ═══════════════════════════════════════════════════════════
+const MEMBER_TEMPLATES=[
+  {num:1,pos:'监管者',cls:'h',emoji:'🎭',charsLabel:'擅长监管者角色',charsPH:'邦邦、雕刻家、小提琴家…'},
+  {num:2,pos:'求生者',cls:'s',emoji:'👤',charsLabel:'擅长求生者角色',charsPH:'佣兵、先知、祭司、调香师…'},
+  {num:3,pos:'求生者',cls:'s',emoji:'👤',charsLabel:'擅长求生者角色',charsPH:'佣兵、先知、祭司、调香师…'},
+  {num:4,pos:'求生者',cls:'s',emoji:'👤',charsLabel:'擅长求生者角色',charsPH:'佣兵、先知、祭司、调香师…'},
+  {num:5,pos:'求生者',cls:'s',emoji:'👤',charsLabel:'擅长求生者角色',charsPH:'佣兵、先知、祭司、调香师…'},
+];
+
+function buildMemberForm(editData){
+  const area=document.getElementById('memberArea');
+  area.innerHTML=MEMBER_TEMPLATES.map(t=>`
+    <div class="mcard ${t.cls}">
+      <div class="mh">
+        <div class="mn mn-${t.cls}">${t.num}</div>
+        <span class="mr mr-${t.cls}">${t.pos}</span>
+        <span style="font-size:11px;color:var(--muted)">${t.num===1?'队伍中的抓人担当':'求生者 #'+(t.num-1)}</span>
+      </div>
+      <div class="row">
+        <div class="fg"><label>游戏昵称 <span class="req">*</span></label><input class="mnick" placeholder="昵称" required maxlength="20" value="${esc(editData&&editData[t.num-1]?editData[t.num-1].nickname:'')}"></div>
+        <div class="fg"><label>游戏ID <span style="font-weight:400;color:var(--muted);font-size:11px">选填</span></label><input class="mgid" placeholder="数字ID" maxlength="20" value="${esc(editData&&editData[t.num-1]?editData[t.num-1].gameId:'')}"></div>
+        <div class="fg"><label>段位</label><select class="mrank">${['','一阶','二阶','三阶','四阶','五阶','六阶','七阶','巅峰七阶','求生者巅峰'].map(r=>`<option value="${r}" ${editData&&editData[t.num-1]&&editData[t.num-1].rank===r?'selected':''}>${r||'段位'}</option>`).join('')}</select></div>
+      </div>
+      <div class="fg"><label>${t.charsLabel}</label><input class="mchars" placeholder="${t.charsPH}" maxlength="50" value="${esc(editData&&editData[t.num-1]?editData[t.num-1].chars:'')}"></div>
+    </div>`).join('');
+}
+
+document.getElementById('regForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const teamName=document.getElementById('r-team').value.trim();
+  const contact=document.getElementById('r-contact').value.trim();
+  if(!teamName){toast('请填队伍名称',true);return;}
+  if(!contact){toast('请填联系方式',true);return;}
+
+  const cards=document.querySelectorAll('#memberArea .mcard');
+  const members=[];
+  let ok=true;
+  cards.forEach((c,i)=>{
+    const nick=c.querySelector('.mnick').value.trim();
+    if(!nick){ok=false;return;}
+    members.push({
+      nickname:nick,
+      gameId:c.querySelector('.mgid').value.trim(),
+      rank:c.querySelector('.mrank').value,
+      position:MEMBER_TEMPLATES[i].pos,
+      chars:c.querySelector('.mchars').value.trim()
+    });
+  });
+  if(!ok||members.length<5){toast('请填写全部5名队员',true);return;}
+
+  const d=loadData();
+  const editId=document.getElementById('r-editId').value;
+  const team={id:editId||genId(),name:teamName,contact,members,notes:document.getElementById('r-notes').value.trim(),time:new Date().toLocaleString('zh-CN')};
+
+  if(editId){
+    const idx=d.teams.findIndex(t=>t.id===editId);
+    if(idx>=0)d.teams[idx]=team;
+  }else{
+    if(d.teams.some(t=>t.name===team.name)){toast('队伍名已存在',true);return;}
+    d.teams.push(team);
+  }
+  saveData(d);
+  cancelEdit();
+  toast('✅ '+ (editId?'已更新':'报名成功'));
+  refreshAll();
+});
+
+function editTeam(id){
+  const d=loadData(); const t=d.teams.find(t=>t.id===id); if(!t)return;
+  document.getElementById('r-team').value=t.name;
+  document.getElementById('r-contact').value=t.contact;
+  document.getElementById('r-notes').value=t.notes||'';
+  document.getElementById('r-editId').value=t.id;
+  document.getElementById('r-submit').textContent='✏️ 更新报名';
+  document.getElementById('r-cancel').style.display='';
+  buildMemberForm(t.members);
+  switchPanel('reg');
+}
+
+function cancelEdit(){
+  document.getElementById('regForm').reset();
+  document.getElementById('r-editId').value='';
+  document.getElementById('r-submit').textContent='✍️ 提交报名';
+  document.getElementById('r-cancel').style.display='none';
+  buildMemberForm();
+}
+function deleteTeam(id){
+  if(!confirm('确定删除这支队伍？'))return;
+  const d=loadData(); d.teams=d.teams.filter(t=>t.id!==id); saveData(d);
+  refreshAll(); toast('已删除');
+}
+
+// ═══════════════════════════════════════════════════════════
+// 6. TEAM DISPLAY
+// ═══════════════════════════════════════════════════════════
+function refreshTeams(){
+  const d=loadData(); const teams=d.teams||[];
+  const total=teams.reduce((s,t)=>s+(t.members||[]).length,0);
+  const hunters=teams.reduce((s,t)=>s+(t.members||[]).filter(m=>m.position==='监管者').length,0);
+  document.getElementById('teamStats').innerHTML=`
+    <div class="stat"><div class="num">${teams.length}</div><div class="lbl">队伍</div></div>
+    <div class="stat"><div class="num">${total}</div><div class="lbl">总人数</div></div>
+    <div class="stat"><div class="num">${hunters}</div><div class="lbl">监管者</div></div>
+    <div class="stat"><div class="num">${total-hunters}</div><div class="lbl">求生者</div></div>`;
+
+  const list=document.getElementById('teamList');
+  if(!teams.length){list.innerHTML='<div class="empty"><div class="icon">📭</div><p>暂无队伍报名</p></div>';return;}
+  list.innerHTML=teams.map(t=>`
+    <div class="tcard">
+      <button class="delb" onclick="deleteTeam('${t.id}')">✕</button>
+      <div class="tname">🏴 ${esc(t.name)}</div>
+      <div class="tmeta">📞 队长联系：${esc(t.contact)} · ${t.time}${t.notes?' · 💬 '+esc(t.notes):''}</div>
+      <div class="tags">${(t.members||[]).map(m=>`
+        <span class="tag">${m.position==='监管者'?'🎭':'👤'} ${esc(m.nickname)}<span class="tr tr-${m.position==='监管者'?'h':'s'}">${m.position}</span>${m.rank?` <span style="color:var(--gold);font-size:10px">${esc(m.rank)}</span>`:''}${m.chars?` <span style="color:var(--muted);font-size:10px">· ${esc(m.chars)}</span>`:''}</span>
+      `).join('')}</div>
+      <button class="btn btn-o btn-s" style="margin-top:8px" onclick="editTeam('${t.id}')">✏️ 编辑</button>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+// 7. BRACKET GENERATION
+// ═══════════════════════════════════════════════════════════
+function generateBracket(){
+  const d=loadData(); const teams=d.teams||[];
+  if(teams.length<2){toast('至少需要2支队伍',true);return;}
+
+  // Shuffle teams for random seeding
+  const shuffled=[...teams].sort(()=>Math.random()-.5);
+  const matches=buildBracket(shuffled);
+  d.matches=matches;
+  saveData(d);
+  refreshAll();
+  toast('✅ 对阵表已生成');
+  switchPanel('bracket');
+}
+
+function buildBracket(teams){
+  const n=teams.length; const matches=[];
+  // Determine rounds needed
+  if(n<=2){
+    matches.push({id:genId(),round:'决赛',roundNum:0,matchNum:0,teamA:teams[0]?.id||null,teamB:teams[1]?.id||null,games:[],gameWinsA:0,gameWinsB:0,winner:null,status:'pending'});
+  }else if(n<=4){
+    matches.push({id:genId(),round:'半决赛',roundNum:0,matchNum:0,teamA:teams[0]?.id||null,teamB:teams[1]?.id||null,games:[],gameWinsA:0,gameWinsB:0,winner:null,status:'pending'});
+    matches.push({id:genId(),round:'半决赛',roundNum:0,matchNum:1,teamA:teams[2]?.id||null,teamB:teams[3]?.id||null,games:[],gameWinsA:0,gameWinsB:0,winner:null,status:'pending'});
+    matches.push({id:genId(),round:'决赛',roundNum:1,matchNum:0,teamA:null,teamB:null,games:[],gameWinsA:0,gameWinsB:0,winner:null,status:'pending'});
+  }else{
+    // 5-8 teams: quarter finals
+    const padded=[...teams];
+    while(padded.length<8)padded.push(null);
+    for(let i=0;i<4;i++) matches.push({id:genId(),round:'四分之一决赛',roundNum:0,matchNum:i,teamA:padded[i*2]?.id||null,teamB:padded[i*2+1]?.id||null,games:[],gameWinsA:0,gameWinsB:0,winner:null,status:'pending'});
+    for(let i=0;i<2;i++) matches.push({id:genId(),round:'半决赛',roundNum:1,matchNum:i,teamA:null,teamB:null,games:[],gameWinsA:0,gameWinsB:0,winner:null,status:'pending'});
+    matches.push({id:genId(),round:'决赛',roundNum:2,matchNum:0,teamA:null,teamB:null,games:[],gameWinsA:0,gameWinsB:0,winner:null,status:'pending'});
+  }
+  return matches;
+}
+
+function refreshBracket(){
+  const d=loadData(); const matches=d.matches||[]; const teams=d.teams||[];
+  const tree=document.getElementById('bracketTree');
+  document.getElementById('bracketInfo').textContent=matches.length?`共 ${matches.length} 场比赛`:'';
+  if(!matches.length){tree.innerHTML='<div class="empty"><div class="icon">📅</div><p>请先报名队伍，然后生成对阵表</p></div>';return;}
+
+  // Group by round
+  const rounds={};
+  matches.forEach(m=>{const k=m.round;if(!rounds[k])rounds[k]=[];rounds[k].push(m);});
+  const roundOrder=['四分之一决赛','半决赛','决赛'];
+
+  tree.innerHTML=roundOrder.filter(r=>rounds[r]).map(r=>`
+    <div class="bround">
+      <div class="bround-title">${r}</div>
+      ${rounds[r].map(m=>{
+        const tA=teams.find(t=>t.id===m.teamA);
+        const tB=teams.find(t=>t.id===m.teamB);
+        const nameA=tA?tA.name:'待定';
+        const nameB=tB?tB.name:'待定';
+        const winTeam=m.winner?teams.find(t=>t.id===m.winner):null;
+        return `<div class="bmatch" style="cursor:pointer" onclick="goScore('${m.id}')">
+          <div class="vs">${esc(nameA)} <span style="color:var(--muted)">vs</span> ${esc(nameB)}</div>
+          ${m.winner?`<div class="bwinner">🏆 ${esc(winTeam?.name||'?')} 胜</div>`:''}
+          ${m.games&&m.games.length?`<div class="bscore">局比分 ${m.gameWinsA}:${m.gameWinsB}</div>`:''}
+          <div class="bstatus">${m.status==='done'?'✅ 已完成':m.status==='live'?'🔴 进行中':'⏳ 待开始'}</div>
+        </div>`;
+      }).join('')}
+    </div>`).join('');
+}
+
+function goScore(matchId){switchPanel('score');setTimeout(()=>{document.getElementById('scoreMatch').value=matchId;loadScoring();},100);}
+
+// Advance winners automatically
+function advanceWinners(){
+  const d=loadData(); const matches=d.matches||[]; let changed=false;
+  const roundOrder=['四分之一决赛','半决赛','决赛'];
+  roundOrder.forEach((round,i)=>{
+    const prevRound=roundOrder[i-1];
+    if(!prevRound)return;
+    const current=matches.filter(m=>m.round===round);
+    const prev=matches.filter(m=>m.round===prevRound);
+    current.forEach((cm,ci)=>{
+      // For semi-finals: winners of quarter 2*i and 2*i+1
+      // For final: winners of semi 0 and 1
+      if(i===1){ // semi-finals from quarters
+        const p0=prev[ci*2], p1=prev[ci*2+1];
+        if(p0&&p0.winner)cm.teamA=p0.winner;
+        if(p1&&p1.winner)cm.teamB=p1.winner;
+      }else if(i===2){ // final from semis
+        const p0=prev[0], p1=prev[1];
+        if(p0&&p0.winner)cm.teamA=p0.winner;
+        if(p1&&p1.winner)cm.teamB=p1.winner;
+      }
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// 8. LIVE SCORING
+// ═══════════════════════════════════════════════════════════
+function refreshScoring(){
+  const d=loadData(); const matches=d.matches||[]; const teams=d.teams||[];
+  const sel=document.getElementById('scoreMatch');
+  sel.innerHTML='<option value="">选择一场比赛...</option>'+matches.map(m=>{
+    const a=teams.find(t=>t.id===m.teamA), b=teams.find(t=>t.id===m.teamB);
+    return `<option value="${m.id}">${m.round} — ${a?esc(a.name):'?'} vs ${b?esc(b.name):'?'} ${m.status==='done'?'✅':''}</option>`;
+  }).join('');
+}
+
+function loadScoring(){
+  const id=document.getElementById('scoreMatch').value;
+  const area=document.getElementById('scoreArea');
+  if(!id){area.innerHTML='<div class="empty"><div class="icon">⚡</div><p>请先选择比赛</p></div>';return;}
+
+  const d=loadData(); const match=d.matches.find(m=>m.id===id); if(!match)return;
+  const teams=d.teams; const tA=teams.find(t=>t.id===match.teamA), tB=teams.find(t=>t.id===match.teamB);
+  const format=(d.tournament.format||'bo5')==='bo5'?5:3;
+  const winsNeeded=Math.ceil(format/2); // 3 for bo5, 2 for bo3
+
+  let html=`<div class="card">
+    <div class="card-h">⚡ ${match.round} · ${esc(tA?.name||'?')} vs ${esc(tB?.name||'?')}</div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:12px">${d.tournament.format?.toUpperCase()||'BO5'} · 先赢 ${winsNeeded} 局者胜</p>`;
+
+  // Existing games
+  (match.games||[]).forEach((g,i)=>{
+    html+=buildGameHTML(g,i,match,tA,tB);
+  });
+
+  html+='</div>';
+
+  // Add game button
+  const canAdd=(match.games||[]).length<format&&!match.winner;
+  html+=`<div style="display:flex;gap:8px;margin-top:12px">`;
+  if(canAdd) html+=`<button class="btn btn-p btn-s" style="width:auto" onclick="addGame('${id}')">➕ 添加下一局</button>`;
+  html+=`<button class="btn btn-o btn-s" onclick="finishMatch('${id}')">${match.winner?'已结束':'🔒 手动结束比赛'}</button>`;
+  html+=`</div>`;
+
+  // Match summary
+  html+=`<div class="match-summary">
+    <div class="ms">${esc(tA?.name||'A队')}</div>
+    <div style="text-align:center"><div style="font-size:28px;font-weight:800;color:var(--gold)">${match.gameWinsA||0} : ${match.gameWinsB||0}</div><div style="font-size:11px;color:var(--muted)">局比分</div></div>
+    <div class="ms">${esc(tB?.name||'B队')}</div>
+  </div>`;
+  if(match.winner){
+    const w=teams.find(t=>t.id===match.winner);
+    html+=`<div style="text-align:center;padding:10px;color:var(--gold);font-size:18px;font-weight:800">🏆 ${esc(w?.name||'?')} 获胜！</div>`;
+  }
+
+  area.innerHTML=html;
+}
+
+function buildGameHTML(g,idx,match,tA,tB){
+  const aHunter=(tA?.members||[]).find(m=>m.position==='监管者');
+  const bHunter=(tB?.members||[]).find(m=>m.position==='监管者');
+  return `<div class="game-card">
+    <div class="gh">
+      <div class="gn">第 ${idx+1} 局</div>
+      <div style="font-size:12px;color:var(--muted)">地图：<input value="${esc(g.map||'')}" onchange="updateGame('${match.id}',${idx},'map',this.value)" placeholder="地图名" style="width:120px;display:inline;padding:4px 8px;font-size:12px"></div>
+    </div>
+    <div class="half-row">
+      <div class="half-box">
+        <div class="hl">上半场 · ${esc(tA?.name||'A队')}监管 ${esc(aHunter?.nickname||'')} vs ${esc(tB?.name||'B队')}求生</div>
+        <div style="font-size:12px;color:var(--muted)">逃脱 <input type="number" value="${g.half1Escape!=null?g.half1Escape:''}" onchange="updateGame('${match.id}',${idx},'half1Escape',parseInt(this.value)||0)" min="0" max="4" style="width:50px;display:inline;padding:4px 6px;font-size:13px;text-align:center"> 人</div>
+        <div style="margin-top:4px"><span class="hs">${g.half1ScoreA!=null?g.half1ScoreA:'-'}</span> : <span class="hs">${g.half1ScoreB!=null?g.half1ScoreB:'-'}</span></div>
+        <div class="hd">${esc(tA?.name||'A')} : ${esc(tB?.name||'B')}</div>
+      </div>
+      <div class="half-box">
+        <div class="hl">下半场 · ${esc(tB?.name||'B队')}监管 ${esc(bHunter?.nickname||'')} vs ${esc(tA?.name||'A队')}求生</div>
+        <div style="font-size:12px;color:var(--muted)">逃脱 <input type="number" value="${g.half2Escape!=null?g.half2Escape:''}" onchange="updateGame('${match.id}',${idx},'half2Escape',parseInt(this.value)||0)" min="0" max="4" style="width:50px;display:inline;padding:4px 6px;font-size:13px;text-align:center"> 人</div>
+        <div style="margin-top:4px"><span class="hs">${g.half2ScoreA!=null?g.half2ScoreA:'-'}</span> : <span class="hs">${g.half2ScoreB!=null?g.half2ScoreB:'-'}</span></div>
+        <div class="hd">${esc(tA?.name||'A')} : ${esc(tB?.name||'B')}</div>
+      </div>
+    </div>
+    <div class="game-result">
+      <span>总积分 ${esc(tA?.name||'A')} ${g.totalA!=null?g.totalA:'-'} : ${g.totalB!=null?g.totalB:'-'} ${esc(tB?.name||'B')}</span>
+      ${g.winner?`<span style="color:var(--green)">✅ ${esc(g.winner===match.teamA?tA?.name:tB?.name)} 胜</span>`:''}
+    </div>
+    <button class="btn btn-o btn-s btn-d" style="width:auto;margin:0 auto;display:block" onclick="deleteGame('${match.id}',${idx})">🗑 删除本局</button>
+  </div>`;
+}
+
+// Scoring: escape count → scores
+// Half where A is hunter, B is survivor:
+// escape 4→A(h)=0 B(s)=5 | 3→A=1 B=3 | 2→A=2 B=2 | 1→A=3 B=1 | 0→A=5 B=0
+// Half where B is hunter, A is survivor: same logic swapped
+function calcHalfScore(escapeCount, isHunter){
+  if(escapeCount==null||isNaN(escapeCount))return null;
+  if(escapeCount===4)return isHunter?0:5;
+  if(escapeCount===3)return isHunter?1:3;
+  if(escapeCount===2)return 2;
+  if(escapeCount===1)return isHunter?3:1;
+  if(escapeCount===0)return isHunter?5:0;
+  return null;
+}
+
+function updateGame(matchId,idx,field,val){
+  const d=loadData(); const m=d.matches.find(m=>m.id===matchId); if(!m||!m.games)return;
+  const g=m.games[idx]; if(!g)return;
+
+  g[field]=val;
+
+  // Recalculate if escape count changed
+  if(field==='half1Escape'){
+    g.half1ScoreA=calcHalfScore(val,true);  // A is hunter
+    g.half1ScoreB=calcHalfScore(val,false); // B is survivor
+  }
+  if(field==='half2Escape'){
+    g.half2ScoreA=calcHalfScore(val,false); // A is survivor
+    g.half2ScoreB=calcHalfScore(val,true);  // B is hunter
+  }
+
+  // Calculate totals
+  if(g.half1ScoreA!=null&&g.half2ScoreA!=null){
+    g.totalA=g.half1ScoreA+g.half2ScoreA;
+    g.totalB=g.half1ScoreB+g.half2ScoreB;
+    if(g.totalA>g.totalB)g.winner=m.teamA;
+    else if(g.totalB>g.totalA)g.winner=m.teamB;
+  }
+
+  // Recalculate match game wins
+  m.gameWinsA=m.games.filter(gg=>gg.winner===m.teamA).length;
+  m.gameWinsB=m.games.filter(gg=>gg.winner===m.teamB).length;
+  m.status=m.games.length>0?'live':'pending';
+
+  // Check if match is won
+  const format=d.tournament.format||'bo5';
+  const needed=Math.ceil((format==='bo5'?5:3)/2);
+  if(m.gameWinsA>=needed){m.winner=m.teamA;m.status='done';}
+  else if(m.gameWinsB>=needed){m.winner=m.teamB;m.status='done';}
+
+  saveData(d);
+  advanceWinners();
+  saveData(d);
+  loadScoring(); refreshAll();
+}
+
+function addGame(matchId){
+  const d=loadData(); const m=d.matches.find(m=>m.id===matchId); if(!m)return;
+  if(!m.games)m.games=[];
+  m.games.push({map:'',half1Escape:null,half2Escape:null,half1ScoreA:null,half1ScoreB:null,half2ScoreA:null,half2ScoreB:null,totalA:null,totalB:null,winner:null});
+  m.status='live';
+  saveData(d);
+  loadScoring();
+}
+
+function deleteGame(matchId,idx){
+  if(!confirm('确定删除这一局？'))return;
+  const d=loadData(); const m=d.matches.find(m=>m.id===matchId); if(!m)return;
+  m.games.splice(idx,1);
+  m.gameWinsA=m.games.filter(g=>g.winner===m.teamA).length;
+  m.gameWinsB=m.games.filter(g=>g.winner===m.teamB).length;
+  if(m.gameWinsA===0&&m.gameWinsB===0&&m.games.length===0)m.status='pending';
+  saveData(d);
+  loadScoring(); refreshAll();
+}
+
+function finishMatch(matchId){
+  const d=loadData(); const m=d.matches.find(m=>m.id===matchId); if(!m)return;
+  if(m.winner){m.winner=null;m.status=m.games.length?'live':'pending';}
+  else{if(!confirm('手动结束比赛？（正常应由局比分自动判定）'))return;m.status='done';if(m.gameWinsA>m.gameWinsB)m.winner=m.teamA;else if(m.gameWinsB>m.gameWinsA)m.winner=m.teamB;}
+  saveData(d);
+  advanceWinners();
+  saveData(d);
+  loadScoring(); refreshAll();
+}
+
+// ═══════════════════════════════════════════════════════════
+// 9. RESULTS
+// ═══════════════════════════════════════════════════════════
+function refreshResult(){
+  const d=loadData(); const matches=d.matches||[]; const teams=d.teams||[];
+  const area=document.getElementById('resultArea');
+  const done=matches.filter(m=>m.winner);
+  if(!done.length){area.innerHTML='<div class="empty"><div class="icon">🏆</div><p>比赛结束后结果将显示在这里</p></div>';return;}
+
+  // Find champion (winner of final)
+  const final=matches.find(m=>m.round==='决赛'&&m.winner);
+  const champTeam=final?teams.find(t=>t.id===final.winner):null;
+
+  let html='';
+  if(champTeam){
+    html+=`<div class="card" style="text-align:center;border:2px solid var(--gold);background:rgba(212,168,83,0.05)">
+      <div style="font-size:48px">🏆</div>
+      <div style="font-size:24px;font-weight:800;color:var(--gold);margin:8px 0">${esc(champTeam.name)}</div>
+      <div style="color:var(--muted)">冠军</div>
+    </div>`;
+  }
+
+  // Ranking
+  html+='<div class="card"><div class="card-h">📋 比赛排名</div>';
+  const ranked=[];
+  // Champion
+  if(champTeam)ranked.push({rank:'🥇',team:champTeam,note:'冠军'});
+  // Runner-up (lost final)
+  if(final&&final.winner){
+    const runnerId=final.teamA===final.winner?final.teamB:final.teamA;
+    const runner=teams.find(t=>t.id===runnerId);
+    if(runner)ranked.push({rank:'🥈',team:runner,note:'亚军'});
+  }
+  // Semi-finalists
+  const semis=matches.filter(m=>m.round==='半决赛');
+  semis.forEach(sm=>{
+    if(sm.winner){
+      const loserId=sm.teamA===sm.winner?sm.teamB:sm.teamA;
+      const loser=teams.find(t=>t.id===loserId);
+      if(loser&&!ranked.find(r=>r.team.id===loser.id))ranked.push({rank:'🥉',team:loser,note:'四强'});
+    }
+  });
+  // Rest
+  teams.forEach(t=>{if(!ranked.find(r=>r.team.id===t.id))ranked.push({rank:'',team:t,note:'参赛'});});
+
+  html+=ranked.map(r=>`<div style="display:flex;align-items:center;gap:10px;padding:10px;border-bottom:1px solid var(--border)">
+    <span style="font-size:20px">${r.rank}</span>
+    <span style="font-weight:700;flex:1">${esc(r.team.name)}</span>
+    <span style="color:var(--muted);font-size:12px">${r.note}</span>
+  </div>`).join('');
+  html+='</div>';
+
+  // Match history
+  html+='<div class="card"><div class="card-h">📜 比赛记录</div>';
+  done.forEach(m=>{
+    const a=teams.find(t=>t.id===m.teamA), b=teams.find(t=>t.id===m.teamB);
+    const w=teams.find(t=>t.id===m.winner);
+    html+=`<div style="padding:8px 0;border-bottom:1px solid var(--border);font-size:13px">
+      <span style="color:var(--gold);font-weight:700">${m.round}</span> ·
+      ${esc(a?.name||'?')} <b>${m.gameWinsA}</b> : <b>${m.gameWinsB}</b> ${esc(b?.name||'?')}
+      · 🏆 ${esc(w?.name||'?')} 胜
+    </div>`;
+  });
+  html+='</div>';
+
+  area.innerHTML=html;
+
+  // MVP fields
+  if(d.mvp){
+    document.getElementById('mvp-hunter').value=d.mvp.hunter||'';
+    document.getElementById('mvp-survivor').value=d.mvp.survivor||'';
+  }
+}
+
+function saveMVP(){
+  const d=loadData();
+  d.mvp={hunter:document.getElementById('mvp-hunter').value.trim(),survivor:document.getElementById('mvp-survivor').value.trim()};
+  saveData(d); toast('✅ MVP已保存');
+}
+
+// ═══════════════════════════════════════════════════════════
+// 10. EXPORT
+// ═══════════════════════════════════════════════════════════
+function exportCSV(){
+  const d=loadData(); const teams=d.teams||[];
+  if(!teams.length){toast('无数据可导出',true);return;}
+  const rows=[];
+  teams.forEach(t=>{(t.members||[]).forEach(m=>{rows.push([t.name,t.contact,m.position,m.nickname,m.gameId,m.rank,m.chars,t.notes]);});});
+  const csv='﻿'+['队伍','联系方式','位置','昵称','游戏ID','段位','擅长角色','备注'].join(',')+'\n'+rows.map(r=>r.map(c=>'"'+String(c||'').replace(/"/g,'""')+'"').join(',')).join('\n');
+  const b=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='第五人格比赛数据.csv';a.click();
+  toast('📥 CSV已下载');
+}
+
+// ═══════════════════════════════════════════════════════════
+// 11. INIT
+// ═══════════════════════════════════════════════════════════
+buildMemberForm();
+refreshAll();
+
+// Keyboard shortcut: Ctrl+number to switch panels
+document.addEventListener('keydown',e=>{
+  if(e.ctrlKey&&e.key>='1'&&e.key<='6'){
+    const names=['info','reg','teams','bracket','score','result'];
+    switchPanel(names[parseInt(e.key)-1]);
+  }
+});
+</script>
+</body>
+</html>
