@@ -1214,15 +1214,7 @@ async function doTeamLogin(){var n=document.getElementById("tl-name").value.trim
 /* ═══════════════ INIT ═══════════════ */
 route();
 // Bind user button
-setTimeout(function(){
-  var ub=document.getElementById('userBtn');
-  if(ub){ub.onclick=function(e){e.preventDefault();if(USER){toggleUserMenu()}else{openUserModal()}}}
-},500);
-// Bind profile buttons
-setTimeout(function(){
-  var pb=document.getElementById('pfEditBtn');
-  if(pb){pb.onclick=function(){var v=document.getElementById('pfInfoView');var e=document.getElementById('pfInfoEdit');if(!v||!e)return;if(e.style.display==='none'){v.style.display='none';e.style.display='';this.textContent='取消'}else{v.style.display='';e.style.display='none';this.textContent='编辑'}}}
-},500);
+
 </script>
 </div>
 </body>
